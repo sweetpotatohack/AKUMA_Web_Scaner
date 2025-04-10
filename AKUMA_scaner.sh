@@ -112,6 +112,21 @@ log "▶ Выполняется пинг-сканирование (nmap)..."
 nmap -sn -iL "$target_file" -oG ping_result.txt >> "$LOG_DIR/log.log" 2>&1
 grep "Up" ping_result.txt | awk '{print $2}' > target_raw.txt
 
+# Исключение определенных IP из списка
+EXCLUDE_IPS=(
+    "192.168.12.190" "192.168.13.12" "192.168.13.122" "192.168.13.130" "192.168.13.162"
+    "192.168.13.74" "192.168.14.157" "192.168.15.94" "192.168.14.69" "192.168.13.7"
+    "192.168.13.84" "192.168.64.21" "192.168.74.55" "192.168.75.41" "192.168.74.21"
+    "192.168.180.34" "192.168.74.33" "192.168.74.37" "192.168.75.37" "192.168.13.62"
+    "192.168.74.36" "192.168.74.31" "10.200.10.15" "192.168.13.62" "10.200.14.13"
+    "192.168.74.28" "10.200.12.16" "192.168.12.239" "192.168.180.12" "192.168.12.203"
+    "192.168.13.106" "192.168.13.172" "192.168.12.241" "192.168.13.117" "192.168.15.94"
+    "10.0.50.16" "192.168.74.11" "10.200.13.13" "192.168.14.18" "192.168.12.194"
+    "10.200.9.13" "192.168.13.22" "192.168.74.38" "192.168.75.42" "192.168.13.176"
+    "192.168.13.78" "10.0.74.250" "10.0.74.251" "10.0.74.252" "192.168.13.72"
+)
+grep -v -F -f <(printf "%s\n" "${EXCLUDE_IPS[@]}") target_raw.txt > target.txt
+
 # Проверка на пустой список целей
 if [ ! -s target.txt ]; then
     log "❌ Ошибка: После фильтрации IP-адресов список целей пуст. Завершаем работу."
@@ -210,6 +225,32 @@ grep -iR 'critical' "jaeles_result.txt" >> "critical.txt"
 grep -iR 'high' "jaeles_result.txt" >> "high.txt"
 grep -iR 'medium' "jaeles_result.txt" >> "medium.txt"
 log "Уязвимости отсортированы."
+
+# Удаление дубликатов в отчетах
+log "▶ Удаление дубликатов в отчетах..."
+
+# Функция для сортировки и удаления дублей
+deduplicate_file() {
+    local file=$1
+    if [ -f "$file" ]; then
+        sort -u "$file" -o "$file"
+        log "Обработан файл $file (удалено дубликатов: $(( $(wc -l < "$file".tmp) - $(wc -l < "$file") ))"
+    fi
+}
+
+# Обрабатываем все ключевые файлы
+deduplicate_file "medium.txt"
+deduplicate_file "high.txt"
+deduplicate_file "critical.txt"
+deduplicate_file "nuclei_result.txt"
+deduplicate_file "jaeles_result.txt"
+
+# Дополнительная очистка (если нужно оставить только уникальные строки)
+log "▶ Фильтрация уникальных результатов..."
+awk '!seen[$0]++' nuclei_result.txt > nuclei_result_unique.txt && mv nuclei_result_unique.txt nuclei_result.txt
+awk '!seen[$0]++' jaeles_result.txt > jaeles_result_unique.txt && mv jaeles_result_unique.txt jaeles_result.txt
+
+log "Дубликаты успешно удалены"
 
 # Создание html отчета Jaeles.
 
