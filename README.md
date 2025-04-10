@@ -95,7 +95,7 @@ git clone https://github.com/projectdiscovery/nuclei-templates.git ~/nuclei-temp
 
 ##### **Nuclei-templates для Bitrix (опционально)**  
 ```bash
-git clone https://github.com/doki-the-builder/nuclei-templates-bitrix.git ~/nuclei-templates-bitrix
+git clone https://github.com/jhonnybonny/nuclei-templates-bitrix.git ~/nuclei-templates-bitrix
 ```
 
 ##### **Базовые сигнатуры для Jaeles**  
@@ -106,6 +106,7 @@ git clone https://github.com/jaeles-project/jaeles-signatures ~/.jaeles/base-sig
 #### **5. Установка `lolcat` (для красивого вывода)**  
 ```bash
 sudo apt install -y lolcat
+sudo apt install -y pv
 ```
 
 ---
