@@ -1,95 +1,162 @@
+AKUMA SCANNER - 悪魔のサイバー偵察ツール  
+
+**"In the neon shadows of the cyber realm, AKUMA whispers your network's secrets..."**  
+
+![Cyber Demon](https://img.icons8.com/color/96/000000/devil.png)  
+
+🚀 概要 (Overview)  
+
+AKUMA (悪魔 - "Demon") is a **high-intensity offensive reconnaissance framework** designed for red teams and penetration testers. Born in the dark alleys of Tokyo's cyber underground, this tool combines brute-force scanning with surgical precision to expose your target's weakest points.  
+
 ```
-# 刃悪魔 AKUMA_SCANNER 攻撃
+# 起動コマンド (Activation Sequence)
+sudo ./AKUMA_scaner.sh -f targets.txt
+```  
 
-_«Wake the fuck up, Samurai... We have servers to burn.» - AKUMA_
+🔥 特徴 (Features)  
+
+- **Demon Core Engine**: Multi-threaded scanning with chaotic-efficiency algorithms  
+- **Ghost Protocol**: Automatically bypasses basic defensive measures  
+- **Neon Bloodline**:  
+  - WordPress/WPScan integration with **API key injection**  
+  - **Bitrix24 surgical strikes** (custom nuclei templates + check_bitrix)  
+  - Cloud enumeration (**AWS/GCP/Azure fingerprinting**)  
+- **Yōkai Modules**:  
+  - Wayback Machine temporal reconstruction  
+  - SSL/TLS bloodletting (testssl.sh integration)  
+  - Subdomain possession via BBOT  
+- **Oni Output**: HTML/PDF reports with **cyberpunk aesthetics**  
+
+## システム要件 (System Requirements)  
 
 ```
-# ███████████████████████████████████████
-# █                                     █
-# █   INITIALIZING AKUMA PROTOCOL...    █
-# █                                     █
-# ███████████████████████████████████████
+# 地獄の依存関係 (Dependencies from Hell)
+sudo apt install git ruby python3 golang docker.io wkhtmltopdf
+gem install wpscan lolcat
+pip3 install pipx bbot
+```  
 
-git clone https://github.com/sweetpotatohack/AKUMA_scaner.git
-cd AKUMA_scaner
+## 🗡️ 使用方法 (Usage)  
+
+```
+# 1. ターゲットファイルの準備
+echo "target.com" > targets.txt
+
+# 2. 悪魔の覚醒 (Wake the Demon)
 chmod +x AKUMA_scaner.sh
-sudo ./AKUMA_scaner.sh --install
-```
+sudo ./AKUMA_scaner.sh -f targets.txt
 
-攻撃ツール [ATTACK MODULES]
+# 3. 血の報酬を収集 (Collect Blood Rewards)
+ls -la /root/web_scan/*/final_report.pdf
+```  
 
-```
-[⚡] NUCLEI-OMEN      :: 0-day vulnerability hunter
-[⚡] WP-KATANA        :: WordPress assault module
-[⚡] BITRIX-BLADE     :: 1C-Bitrix penetration kit
-[⚡] JAELES-SHURIKEN  :: Custom signature launcher
-[⚡] WEBHOOK-DRAGON   :: Data exfiltration channel
-[⚡] SSL-ONI          :: TLS/SSL executioner
-[⚡] SUBDOMAIN-SHADOW :: Stealth surface mapper
-[⚡] WAYBACK-GHOST    :: Historical data phantom
-[⚡] CLOUD-RONIN      :: Cloud infrastructure hunter
-```
-
-コマンド [COMMAND INTERFACE]
+🌌 出力例 (Sample Output)  
 
 ```
-# STANDARD SCAN MODE
-./AKUMA_scaner.sh -f targets.txt
+[血月昇る] スキャン結果:
+• 生きているホスト: 23 (赤い影)  
+• WordPress サイト: 5 (脆弱性36個)  
+• Bitrix ターゲット: 3 (内出血検出)  
+• クリティカル脆弱性: 9 (即時殺傷可能)  
+• 歴史的URL: 428 (亡霊の痕跡)  
+```  
 
-# STEALTH MODE (slow, low noise)
-./AKUMA_scaner.sh -f targets.txt --ghost
+⚠️ 免責事項 (Disclaimer)  
 
-# WORDPRESS DEEP SCAN
-./AKUMA_scaner.sh -f targets.txt --wp-rampage
+このツールは合法的なセキュリティテスト専用です。  
+**"The demon bites both ways - use responsibly."**  
 
-# BITRIX KILLCHAIN
-./AKUMA_scaner.sh -f targets.txt --bitrix-doom
-
-# FULL SYSTEM WIPE (aggressive)
-./AKUMA_scaner.sh -f targets.txt --blood-mode
-```
-
-システム要件 [SYSTEM REQUIREMENTS]
+![Cyber Tokyo](https://img.icons8.com/color/96/000000/cyber.png)  
 
 ```
-[⚠] 4GB RAM minimum (16GB recommended for --blood-mode)
-[⚠] Kali Linux/BlackArch/Parrot OS
-[⚠] Root privileges required
-[⚠] 20GB disk space for artifact storage
-[⚠] Python 3.10+ with bleeding-edge libs
-```
+          _  _                  _  _            
+         / \/ \   _   _   _   / \/ \    _   _  
+        / /\_/\ / \ / \ / \ / /\_/\ \ / \ / \ 
+        \/      \_/ \_/ \_/ \/      \/ \_/ \_/ 
+        悪魔は詳細を見る...
+```  
 
-アップデート [SYSTEM UPDATE]
+**Github:** [https://github.com/sweetpotatohack/AKUMA_scaner](https://github.com/sweetpotatohack/AKUMA_scaner)  
+**License:** BSD 3-Clause "New" or "Revised" License (血の誓約)
+
+**AKUMA SCANNER — Инструмент киберразведки**  
+
+**"В неоновых тенях цифрового ада AKUMA шепчет секреты вашей сети..."**  
+
+![Cyber Demon](https://img.icons8.com/color/96/000000/devil.png)  
+
+**🔥 ОБЗОР**  
+
+AKUMA (яп. 悪魔 — "Демон") — это **мощный инструмент для разведки и пентеста**, созданный для red team и этичных хакеров. Рожденный в темных переулках киберподполья, он сочетает в себе **агрессивное сканирование** с хирургической точностью, чтобы выявить уязвимости цели.  
 
 ```
-git pull origin master
-./AKUMA_scaner.sh --upgrade
-```
+# Активация сканера
+sudo ./AKUMA_scaner.sh -f targets.txt
+```  
 
-免責事項 [DISCLAIMER]
+⚡ ОСОБЕННОСТИ**  
+
+- **Ядро демона**: Многопоточное сканирование с хаотичной, но эффективной логикой.  
+- **Режим призрака**: Обход базовых защитных механизмов.  
+- **Кровь неона**:  
+  - Интеграция **WordPress/WPScan** с автоматическим сканированием уязвимостей.  
+  - **Глубокая проверка Bitrix24** (кастомные шаблоны Nuclei + check_bitrix).  
+  - Обнаружение облачных сервисов (**AWS/GCP/Azure**).  
+- **Модули ёкаев**:  
+  - Анализ исторических URL через **Wayback Machine**.  
+  - Проверка SSL/TLS (**testssl.sh**).  
+  - Поиск поддоменов через **BBOT**.  
+- **Демонический отчет**: Генерация **HTML/PDF** в стиле киберпанк.  
+
+**💀 ТРЕБОВАНИЯ**  
 
 ```
-THIS TOOL IS FOR LEGAL PENETRATION TESTING ONLY.
-UNAUTHORIZED ACCESS IS PROHIBITED BY INTERNATIONAL LAW.
+# Установка зависимостей
+sudo apt install git ruby python3 golang docker.io wkhtmltopdf
+gem install wpscan lolcat
+pip3 install pipx bbot
+```  
 
-             /\
-         /  \_________________________________________________________________________________________
-        |   ░▒▓████▓▒░ EXPLOIT LIKE WATER, CRASH LIKE A WAVE ░▒▓████▓▒░                                |
-        |  //[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]\\ |
-        | <<<[CVE-2021-44228][CVE-2017-0144][CVE-2014-0160][CVE-2010-2861][CVE-2008-4250][CVE-1999-0517]>>> |
-        |   ▒▓▓▒░ THE SWORD FEARS THE CODER ░▒▓▓▒                                                     |
-        |  {}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}  |
-        |   ░▒▓▓▒░ A SINGLE LINE OF CODE CAN TOPPLE EMPIRES ░▒▓▓▒░                                    |
-        |  [root@kali]# nmap -sS -A -T4 [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][] |
-        |   ▒▓▓▓▓▒ HACK THE BLADE. HACK THE WORLD. ▒▓▓▓▓▒                                             |
-        |  {{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}} |
-        |   ░▒▓▓▒░ PATCHES ARE TEMPORARY. EXPLOITS ARE ETERNAL ░▒▓▓▒░                                |
-        |  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  |
-        |   [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][] |
-        |_____________________________________________________________________________________________|
-         \  /
-          \/
-```
+**🗡️ КАК ИСПОЛЬЗОВАТЬ**  
 
-_«When the scan completes, the real work begins...» - AKUMA_
 ```
+# 1. Подготовка списка целей
+echo "example.com" > targets.txt
+
+# 2. Пробуждение демона
+chmod +x AKUMA_scaner.sh
+sudo ./AKUMA_scaner.sh -f targets.txt
+
+# 3. Получение результатов
+ls -la /root/web_scan/*/final_report.pdf
+```  
+
+**🌌 ПРИМЕР ВЫВОДА**  
+
+```
+[Кровавая луна восходит] Результаты сканирования:  
+• Живые хосты: 23 (красные тени)  
+• WordPress-сайты: 5 (уязвимости: 36)  
+• Bitrix-цели: 3 (обнаружены уязвимости)  
+• Критические уязвимости: 9 (немедленная угроза)  
+• Исторические URL: 428 (призрачные следы)  
+```  
+
+**⚠️ ОТВЕТСТВЕННОСТЬ**  
+
+Этот инструмент предназначен **только для легального тестирования безопасности**.  
+
+**"Демон кусает обе стороны — используй с умом."**  
+
+![Cyber Tokyo](https://img.icons8.com/color/96/000000/cyber.png)  
+
+```
+          _  _                  _  _            
+         / \/ \   _   _   _   / \/ \    _   _  
+        / /\_/\ / \ / \ / \ / /\_/\ \ / \ / \ 
+        \/      \_/ \_/ \_/ \/      \/ \_/ \_/ 
+        Демон видит всё...
+```  
+
+**Github:** [https://github.com/sweetpotatohack/AKUMA_scaner](https://github.com/sweetpotatohack/AKUMA_scaner)  
+**Лицензия:** BSD 3-Clause "New" or "Revised" License (Кровавая клятва)
