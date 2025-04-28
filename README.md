@@ -139,7 +139,11 @@ ls -la /root/web_scan/*/final_report.pdf
 **⚠️ ОТВЕТСТВЕННОСТЬ**  
 
 Этот инструмент предназначен **только для легального тестирования безопасности**.  
-
+"Exploit like water, crash like a wave."
+"The sword fears the coder."
+"A single line of code can topple empires."
+"Hack the blade. Hack the world."
+"Patches are temporary. Exploits are eternal."
 **"Демон кусает обе стороны — используй с умом."**  
 
 ```
