@@ -3,7 +3,7 @@
 
 _«Wake the fuck up, Samurai... We have servers to burn.» - AKUMA_
 
-```bash
+```
 # ███████████████████████████████████████
 # █                                     █
 # █   INITIALIZING AKUMA PROTOCOL...    █
