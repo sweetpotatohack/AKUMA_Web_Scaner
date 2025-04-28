@@ -1,8 +1,6 @@
 AKUMA SCANNER - 悪魔のサイバー偵察ツール  
 
-**"In the neon shadows of the cyber realm, AKUMA whispers your network's secrets..."**  
-
-![Cyber Demon](https://img.icons8.com/color/96/000000/devil.png)  
+**"In the neon shadows of the cyber realm, AKUMA whispers your network's secrets..."**    
 
 🚀 概要 (Overview)  
 
@@ -64,9 +62,7 @@ ls -la /root/web_scan/*/final_report.pdf
 ⚠️ 免責事項 (Disclaimer)  
 
 このツールは合法的なセキュリティテスト専用です。  
-**"The demon bites both ways - use responsibly."**  
-
-![Cyber Tokyo](https://img.icons8.com/color/96/000000/cyber.png)  
+**"The demon bites both ways - use responsibly."**   
 
 ```
           _  _                  _  _            
@@ -81,9 +77,7 @@ ls -la /root/web_scan/*/final_report.pdf
 
 **AKUMA SCANNER — Инструмент киберразведки**  
 
-**"В неоновых тенях цифрового ада AKUMA шепчет секреты вашей сети..."**  
-
-![Cyber Demon](https://img.icons8.com/color/96/000000/devil.png)  
+**"В неоновых тенях цифрового ада AKUMA шепчет секреты вашей сети..."**   
 
 **🔥 ОБЗОР**  
 
@@ -147,8 +141,6 @@ ls -la /root/web_scan/*/final_report.pdf
 Этот инструмент предназначен **только для легального тестирования безопасности**.  
 
 **"Демон кусает обе стороны — используй с умом."**  
-
-![Cyber Tokyo](https://img.icons8.com/color/96/000000/cyber.png)  
 
 ```
           _  _                  _  _            
