@@ -644,10 +644,9 @@ grep -vE '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' "$target_file" | while read -r domain
     scan_subdomains "$domain"
 done
 
-# Если нашли поддомены, добавляем их в список целей
+# Логируем найденные поддомены, но не добавляем их в список целей
 if [ -f "$LOG_DIR/subdomains/all_subdomains.txt" ]; then
-    log "Добавляем найденные поддомены в список целей"
-    cat "$LOG_DIR/subdomains/all_subdomains.txt" >> "$LOG_DIR/targets_clean.txt"
+    log "Найдено поддоменов: $(wc -l < "$LOG_DIR/subdomains/all_subdomains.txt") (не добавляются в scope сканирования)"
 fi
 
 # 4. Детальное сканирование nmap
@@ -1352,3 +1351,4 @@ if [ -s "$LOG_DIR/nmap_redirects/redirects.txt" ]; then
 fi
 
 exit 0
+
