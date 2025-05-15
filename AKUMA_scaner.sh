@@ -1219,10 +1219,19 @@ cat <<EOF > "$LOG_DIR/report.html"
     </div>
 
     <div class="section">
-        <h2>Критические уязвимости</h2>
-        <div class="vulnerability critical">
-            <pre>$(grep -i "critical" "$LOG_DIR/nuclei_results.txt" 2>/dev/null || echo "Не обнаружено")</pre>
-        </div>
+        
+<h2>Критические уязвимости</h2>
+<div class="vulnerability critical">
+<pre>$(grep -i "\[critical\]" "$LOG_DIR/nuclei_results.txt" 2>/dev/null || echo "Не обнаружено")</pre>
+</div>
+<h2>Высокие уязвимости</h2>
+<div class="vulnerability high">
+<pre>$(grep -i "\[high\]" "$LOG_DIR/nuclei_results.txt" 2>/dev/null || echo "Не обнаружено")</pre>
+</div>
+<h2>Средние уязвимости</h2>
+<div class="vulnerability medium">
+<pre>$(grep -i "\[medium\]" "$LOG_DIR/nuclei_results.txt" 2>/dev/null || echo "Не обнаружено")</pre>
+</div>
     </div>
 
     <div class="section">
@@ -1351,4 +1360,3 @@ if [ -s "$LOG_DIR/nmap_redirects/redirects.txt" ]; then
 fi
 
 exit 0
-
