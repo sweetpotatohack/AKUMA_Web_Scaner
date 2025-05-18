@@ -625,17 +625,14 @@ grep "Up" "$LOG_DIR/ping_result.txt" | awk '{print $2}' > "$LOG_DIR/target_raw.t
     exit 1
 }
 
-# 2. Фильтрация приватных IP с проверкой
-#log "▶ Фильтрация приватных IP..."
-#grep -vE '^(10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)' "$LOG_DIR/target_raw.txt" > "$LOG_DIR/targets_clean.txt" || {
-#    log "❌ Ошибка фильтрации IP"
-#    exit 1
-#}
+log "▶ Сохраняем все цели (включая внутренние IP)..."
+cp "$LOG_DIR/target_raw.txt" "$LOG_DIR/targets_clean.txt"
 
-#if [ ! -s "$LOG_DIR/targets_clean.txt" ]; then
-#    log "❌ Нет целей после фильтрации"
-#    exit 1
-#fi
+
+if [ ! -s "$LOG_DIR/targets_clean.txt" ]; then
+    log "❌ Нет целей после фильтрации"
+    exit 1
+fi
 
 # 3. Поиск поддоменов для доменов из target_file
 log "▶ Поиск поддоменов..."
@@ -1219,19 +1216,10 @@ cat <<EOF > "$LOG_DIR/report.html"
     </div>
 
     <div class="section">
-        
-<h2>Критические уязвимости</h2>
-<div class="vulnerability critical">
-<pre>$(grep -i "\[critical\]" "$LOG_DIR/nuclei_results.txt" 2>/dev/null || echo "Не обнаружено")</pre>
-</div>
-<h2>Высокие уязвимости</h2>
-<div class="vulnerability high">
-<pre>$(grep -i "\[high\]" "$LOG_DIR/nuclei_results.txt" 2>/dev/null || echo "Не обнаружено")</pre>
-</div>
-<h2>Средние уязвимости</h2>
-<div class="vulnerability medium">
-<pre>$(grep -i "\[medium\]" "$LOG_DIR/nuclei_results.txt" 2>/dev/null || echo "Не обнаружено")</pre>
-</div>
+        <h2>Критические уязвимости</h2>
+        <div class="vulnerability critical">
+            <pre>$(grep -i "critical" "$LOG_DIR/nuclei_results.txt" 2>/dev/null || echo "Не обнаружено")</pre>
+        </div>
     </div>
 
     <div class="section">
