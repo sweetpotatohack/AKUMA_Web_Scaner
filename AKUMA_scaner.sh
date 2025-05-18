@@ -626,16 +626,16 @@ grep "Up" "$LOG_DIR/ping_result.txt" | awk '{print $2}' > "$LOG_DIR/target_raw.t
 }
 
 # 2. Фильтрация приватных IP с проверкой
-log "▶ Фильтрация приватных IP..."
-grep -vE '^(10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)' "$LOG_DIR/target_raw.txt" > "$LOG_DIR/targets_clean.txt" || {
-    log "❌ Ошибка фильтрации IP"
-    exit 1
-}
+#log "▶ Фильтрация приватных IP..."
+#grep -vE '^(10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)' "$LOG_DIR/target_raw.txt" > "$LOG_DIR/targets_clean.txt" || {
+#    log "❌ Ошибка фильтрации IP"
+#    exit 1
+#}
 
-if [ ! -s "$LOG_DIR/targets_clean.txt" ]; then
-    log "❌ Нет целей после фильтрации"
-    exit 1
-fi
+#if [ ! -s "$LOG_DIR/targets_clean.txt" ]; then
+#    log "❌ Нет целей после фильтрации"
+#    exit 1
+#fi
 
 # 3. Поиск поддоменов для доменов из target_file
 log "▶ Поиск поддоменов..."
