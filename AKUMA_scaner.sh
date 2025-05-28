@@ -20,7 +20,7 @@ install_dependencies() {
         fonts-liberation fonts-noto-cjk fonts-noto-color-emoji ruby-dev \
         build-essential libcurl4-openssl-dev libxml2 libxml2-dev libxslt1-dev \
         libffi-dev zlib1g-dev python3-dev python3-distutils || { 
-        echo "⚠️ Ошибка установки некоторых пакетов, но продолжаем..."
+        echo "⚠ Ошибка установки некоторых пакетов, но продолжаем..."
     }
     
     # Установка шрифтов для корректного отображения в PDF
@@ -34,7 +34,7 @@ install_dependencies() {
             return 1
         }
         python3 -m pipx ensurepath || {
-            echo "⚠️ Не удалось настроить PATH для pipx"
+            echo "⚠ Не удалось настроить PATH для pipx"
             return 1
         }
         source ~/.bashrc
@@ -44,16 +44,16 @@ install_dependencies() {
     echo -e "\n[+] Настройка Ruby и WPScan..."
     if ! command -v gem &>/dev/null; then
         apt install -y ruby rubygems || {
-            echo "⚠️ Не удалось установить Ruby и RubyGems"
+            echo "⚠ Не удалось установить Ruby и RubyGems"
             return 1
         }
     fi
     
     # Пропускаем обновление RubyGems, если установлен через apt
     if ! apt list --installed 2>/dev/null | grep -q rubygems; then
-        gem update --system 2>/dev/null || echo "ℹ️ RubyGems установлен через apt, пропускаем обновление"
+        gem update --system 2>/dev/null || echo "ℹ RubyGems установлен через apt, пропускаем обновление"
     else
-        echo "ℹ️ RubyGems установлен через apt, пропускаем обновление"
+        echo "ℹ RubyGems установлен через apt, пропускаем обновление"
     fi
     
     # Установка WPScan
@@ -62,7 +62,7 @@ install_dependencies() {
         if gem install wpscan; then
             echo "✅ WPScan успешно установлен"
         else
-            echo "⚠️ Попытка альтернативной установки WPScan..."
+            echo "⚠ Попытка альтернативной установки WPScan..."
             if gem install wpscan --user-install; then
                 # Добавляем путь к gems в PATH
                 gem_path=$(find "$HOME/.gem/ruby" -name 'bin' -type d | head -n 1)
@@ -71,7 +71,7 @@ install_dependencies() {
                     echo "export PATH=\"\$PATH:$gem_path\"" >> ~/.bashrc
                     echo "✅ WPScan установлен в пользовательскую директорию"
                 else
-                    echo "⚠️ Не удалось найти путь к WPScan"
+                    echo "⚠ Не удалось найти путь к WPScan"
                 fi
             else
                 echo "❌ Не удалось установить WPScan"
@@ -94,7 +94,7 @@ install_dependencies() {
         if pipx install bbot; then
             bbot_path=$(pipx list --short | grep bbot | awk '{print $3}')
             if [ -n "$bbot_path" ]; then
-                cp "$bbot_path/bin/bbot" /usr/local/bin/ || echo "⚠️ Не удалось скопировать BBOT в /usr/local/bin"
+                cp "$bbot_path/bin/bbot" /usr/local/bin/ || echo "⚠ Не удалось скопировать BBOT в /usr/local/bin"
             fi
             echo "✅ BBOT успешно установлен"
         else
@@ -102,16 +102,16 @@ install_dependencies() {
             return 1
         fi
     else
-        echo "ℹ️ BBOT уже установлен, пропускаем установку"
+        echo "ℹ BBOT уже установлен, пропускаем установку"
     fi
     
     # Остальные зависимости...
     # Установка lolcat (для цветного вывода)
     if ! command -v lolcat &>/dev/null; then
         if command -v gem &>/dev/null; then
-            gem install lolcat || apt install -y lolcat || echo "⚠️ Не удалось установить lolcat"
+            gem install lolcat || apt install -y lolcat || echo "⚠ Не удалось установить lolcat"
         else
-            apt install -y lolcat || echo "⚠️ Не удалось установить lolcat"
+            apt install -y lolcat || echo "⚠ Не удалось установить lolcat"
         fi
     fi
     
@@ -142,10 +142,10 @@ install_dependencies() {
             if go install -v "$tool"; then
                 echo "✅ $tool_name успешно установлен"
             else
-                echo "⚠️ Не удалось установить $tool_name"
+                echo "⚠ Не удалось установить $tool_name"
             fi
         else
-            echo "ℹ️ $tool_name уже установлен, пропускаем"
+            echo "ℹ $tool_name уже установлен, пропускаем"
         fi
     done
     
@@ -154,7 +154,7 @@ install_dependencies() {
         echo "Установка testssl..."
         rm -rf /opt/testssl 2>/dev/null
         if git clone --depth 1 https://github.com/drwetter/testssl.sh.git /opt/testssl; then
-            ln -sf /opt/testssl/testssl.sh /usr/bin/testssl || echo "⚠️ Не удалось создать симлинк для testssl"
+            ln -sf /opt/testssl/testssl.sh /usr/bin/testssl || echo "⚠ Не удалось создать симлинк для testssl"
             echo "✅ testssl успешно установлен"
         else
             echo "❌ Не удалось установить testssl"
@@ -185,7 +185,7 @@ install_dependencies() {
         if git clone https://github.com/jhonnybonny/nuclei-templates-bitrix.git /root/nuclei-templates-bitrix; then
             echo "✅ Шаблоны Nuclei для Bitrix успешно установлены"
         else
-            echo "⚠️ Не удалось клонировать nuclei-templates-bitrix"
+            echo "⚠ Не удалось клонировать nuclei-templates-bitrix"
         fi
     fi
     
@@ -196,7 +196,7 @@ install_dependencies() {
            python3 -m pip install -r /root/check_bitrix/requirements.txt --break-system-packages; then
             echo "✅ check_bitrix успешно установлен"
         else
-            echo "⚠️ Не удалось установить зависимости check_bitrix"
+            echo "⚠ Не удалось установить зависимости check_bitrix"
         fi
     fi
     
@@ -307,11 +307,11 @@ run_ssl_scan() {
         testssl --htmlfile "$LOG_DIR/ssl_audit/${domain}.html" "$url" > /dev/null 2>&1
         
         if [ ! -f "$LOG_DIR/ssl_audit/${domain}.html" ]; then
-            log "⚠️ Не удалось создать SSL отчет для $url"
+            log "⚠ Не удалось создать SSL отчет для $url"
             touch "$LOG_DIR/ssl_audit/${domain}.html"
         fi
     else
-        log "⚠️ Хост $domain недоступен, пропускаем SSL проверку"
+        log "⚠ Хост $domain недоступен, пропускаем SSL проверку"
     fi
 }
 
@@ -340,7 +340,7 @@ scan_wordpress() {
     
     log "Запуск WPScan для $url"
     wpscan --url "$(echo "$url" | awk '{print $1}')" --force --api-token 7xSvi2jEhfZyHeEnOLXeWxmskjQbwsOCTHXlrzzq6Is --format json --output "$LOG_DIR/wordpress_scan/${clean_url}_wpscan.json" || {
-        log "⚠️ Ошибка WPScan для $url"
+        log "⚠ Ошибка WPScan для $url"
     }
     
     # Анализ результатов WPScan
@@ -357,7 +357,7 @@ scan_subdomains() {
     local domain=$1
     
     if ! command -v bbot &>/dev/null; then
-        log "⚠️ BBOT не установлен, пропускаем поиск поддоменов"
+        log "⚠ BBOT не установлен, пропускаем поиск поддоменов"
         return
     fi
     
@@ -387,7 +387,7 @@ scan_subdomains() {
         # Сохраняем полный вывод BBOT для отладки
         echo "$bbot_output" > "$LOG_DIR/subdomains/${domain}_subdomains/bbot_output.log"
     else
-        log "⚠️ BBOT не нашел поддоменов для $domain или не смог сохранить результаты"
+        log "⚠ BBOT не нашел поддоменов для $domain или не смог сохранить результаты"
         log "Вывод BBOT: $bbot_output"
     fi
 }
@@ -398,7 +398,7 @@ analyze_wayback_urls() {
     local output_file="$2"
     
     if [ ! -s "$wayback_file" ]; then
-        log "⚠️ Файл исторических URL пуст"
+        log "⚠ Файл исторических URL пуст"
         return
     fi
     
@@ -416,7 +416,7 @@ analyze_wayback_urls() {
 check_tools() {
     local missing=0
     declare -A install_commands=(
-	    ["wpscan"]="gem install wpscan"
+            ["wpscan"]="gem install wpscan"
         ["nmap"]="apt install -y nmap"
         ["httpx"]="go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest"
         ["whatweb"]="apt install -y whatweb"
@@ -438,7 +438,7 @@ check_tools() {
         if ! command -v "$tool" &>/dev/null; then
             log "❌ $tool не установлен. Попытка установки..."
             if ! eval "${install_commands[$tool]}"; then
-                log "⚠️ Не удалось установить $tool"
+                log "⚠ Не удалось установить $tool"
                 ((missing++))
             fi
         fi
@@ -449,7 +449,7 @@ check_tools() {
         log "Установка cloud_enum..."
         git clone https://github.com/initstring/cloud_enum.git /root/cloud_enum && \
         pip3 install -r /root/cloud_enum/requirements.txt --break-system-packages || {
-            log "⚠️ Не удалось установить cloud_enum"
+            log "⚠ Не удалось установить cloud_enum"
             ((missing++))
         }
     fi
@@ -458,7 +458,7 @@ check_tools() {
     if [ ! -d "/root/nuclei-templates-bitrix" ]; then
         log "Установка шаблонов Nuclei для Bitrix..."
         git clone https://github.com/jhonnybonny/nuclei-templates-bitrix.git /root/nuclei-templates-bitrix || {
-            log "⚠️ Не удалось клонировать nuclei-templates-bitrix"
+            log "⚠ Не удалось клонировать nuclei-templates-bitrix"
             ((missing++))
         }
     fi
@@ -468,14 +468,14 @@ check_tools() {
         log "Установка check_bitrix сканера..."
         git clone https://github.com/k1rurk/check_bitrix.git /root/check_bitrix && \
         pip3 install -r /root/check_bitrix/requirements.txt --break-system-packages || {
-            log "⚠️ Не удалось установить check_bitrix"
+            log "⚠ Не удалось установить check_bitrix"
             ((missing++))
         }
     fi
 
     # Проверка Grafana окружения
     if [ ! -d "/root/nmap-did-what" ]; then
-        log "⚠️ Директория nmap-did-what не найдена, Grafana не будет работать"
+        log "⚠ Директория nmap-did-what не найдена, Grafana не будет работать"
         ((missing++))
     fi
 
@@ -593,7 +593,7 @@ fi
 WEBHOOK_URL=$(get_webhook_url)
 log "Используется Webhook URL: $WEBHOOK_URL"
 if [[ "$WEBHOOK_URL" == *"default-token"* ]]; then
-    log "⚠️ Внимание: используется дефолтный webhook URL, результаты могут быть неполными"
+    log "⚠ Внимание: используется дефолтный webhook URL, результаты могут быть неполными"
 fi
 
 # Обработка аргументов с проверкой
@@ -654,30 +654,30 @@ nmap -p- -sV -Pn --script=http-title,ssl-cert \
      --max-rtt-timeout 300ms --min-rtt-timeout 100ms \
      --max-retries 2 --open -oA "$LOG_DIR/nmap_result" \
      $(cat "$LOG_DIR/targets_clean.txt") || {
-    log "⚠️ Nmap завершился с ошибками, но продолжаем"
+    log "⚠ Nmap завершился с ошибками, но продолжаем"
 }
 
 # 5. Интеграция с Grafana
 log "▶ Копирование результатов nmap для Grafana..."
 if [ -d "/root/nmap-did-what/data" ]; then
     cp "$LOG_DIR/nmap_result.xml" "/root/nmap-did-what/data/" || {
-        log "⚠️ Не удалось скопировать результаты для Grafana"
+        log "⚠ Не удалось скопировать результаты для Grafana"
     }
 
     log "▶ Перезапуск Grafana..."
     cd "/root/nmap-did-what/grafana-docker" && \
     docker-compose up -d || {
-        log "⚠️ Не удалось перезапустить Grafana"
+        log "⚠ Не удалось перезапустить Grafana"
     }
 
     log "▶ Создание базы данных для Grafana..."
     cd "/root/nmap-did-what/data/" && \
     python3 nmap-to-sqlite.py nmap_result.xml || {
-        log "⚠️ Не удалось создать базу данных Grafana"
+        log "⚠ Не удалось создать базу данных Grafana"
     }
     cd "$LOG_DIR"
 else
-    log "⚠️ Пропускаем интеграцию с Grafana: директория nmap-did-what не найдена"
+    log "⚠ Пропускаем интеграцию с Grafana: директория nmap-did-what не найдена"
 fi
 
 # 6. Извлечение открытых портов с проверкой
@@ -699,7 +699,7 @@ grep "Ports:" "$LOG_DIR/nmap_result.gnmap" | awk -F"[ /]" '{
 }' > "$LOG_DIR/open_ports.txt"
 
 if [ ! -s "$LOG_DIR/open_ports.txt" ]; then
-    log "⚠️ Нет открытых портов, создаем минимальный список"
+    log "⚠ Нет открытых портов, создаем минимальный список"
     awk '{print $1":80"}' "$LOG_DIR/targets_clean.txt" > "$LOG_DIR/open_ports.txt"
 fi
 
@@ -716,7 +716,7 @@ cat "$target_file" "$LOG_DIR/open_ports.txt" | sort -u > "$LOG_DIR/combined_targ
 # Проверяем веб-сервисы по объединенному списку
 if command -v httpx >/dev/null; then
     httpx -list "$LOG_DIR/combined_targets.txt" -title -tech-detect -status-code -o "$LOG_DIR/httpx_live.txt" -silent || {
-        log "⚠️ Ошибка httpx, создаем fallback"
+        log "⚠ Ошибка httpx, создаем fallback"
         # Форматируем open_ports.txt в URL
         sed 's/:/\/\//;s/$/\//' "$LOG_DIR/open_ports.txt" | sed 's/^/http:\/\//' > "$LOG_DIR/httpx_live.txt"
         # Добавляем оригинальные домены
@@ -871,7 +871,7 @@ if [ -s "$LOG_DIR/wayback/domains.txt" ]; then
         grep -P "\d{4,}" "$LOG_DIR/wayback/urls.txt" > "$LOG_DIR/leaks/numeric_ids.txt"
     fi
 else
-    log "⚠️ Нет доменов для проверки через Waybackurls"
+    log "⚠ Нет доменов для проверки через Waybackurls"
     wayback_count=0
 fi
 
@@ -887,7 +887,7 @@ log "▶ Nuclei (10 запр/сек)..."
 if [ -s "$LOG_DIR/httpx_clean_urls.txt" ]; then
     nuclei -l "$LOG_DIR/httpx_clean_urls.txt" -rate-limit 10 -c 20 -o "$LOG_DIR/nuclei_results.txt" 2>/dev/null
 else
-    log "⚠️ Нет целей для Nuclei"
+    log "⚠ Нет целей для Nuclei"
     touch "$LOG_DIR/nuclei_results.txt"
 fi
 
@@ -916,12 +916,12 @@ if [ -s "$LOG_DIR/httpx_clean_urls.txt" ]; then
         awk '!seen[$0]++' "$LOG_DIR/jaeles_results/jaeles-summary.txt" > "$LOG_DIR/jaeles_results/scan.tmp"
         mv "$LOG_DIR/jaeles_results/scan.tmp" "$LOG_DIR/jaeles_results/scan.txt"
     else
-        log "⚠️ Jaeles не создал файл результатов"
+        log "⚠ Jaeles не создал файл результатов"
         touch "$LOG_DIR/jaeles_results/vuln-summary.txt"
         touch "$LOG_DIR/jaeles_results/scan.txt"
     fi
 else
-    log "⚠️ Нет целей для Jaeles"
+    log "⚠ Нет целей для Jaeles"
     mkdir -p "$LOG_DIR/jaeles_results"
     touch "$LOG_DIR/jaeles_results/vuln-summary.txt"
     touch "$LOG_DIR/jaeles_results/scan.txt"
@@ -1307,7 +1307,7 @@ xvfb-run --server-args="-screen 0, 1024x768x24" wkhtmltopdf \
     --page-size A4 \
     --quiet \
     "$LOG_DIR/report.html" "$LOG_DIR/final_report.pdf" || {
-    log "⚠️ Не удалось создать PDF отчет, создаем текстовый"
+    log "⚠ Не удалось создать PDF отчет, создаем текстовый"
     cp "$LOG_DIR/report.html" "$LOG_DIR/final_report.txt"
 }
 log "✅ Отчет сохранен: $LOG_DIR/final_report.pdf"
