@@ -1,4 +1,63 @@
 #!/bin/bash
+target_file=""
+ZOMBIE_FILTER=0
+custom_targets=()
+
+usage() {
+    cat <<EOF
+AKUMA SCANER — киберпанк сканер для багбаунти/редтиминга
+
+Использование:
+  $0 -f <файл_с_целями> [опции]
+  $0 <ip/подсеть/домен>... [опции]
+
+Ключи:
+  -f <file>     Файл с целями (IP или домены, по одному на строку)
+  -z            Включить TCP-зомби фильтр (по портам AD/топовые)
+  -h, --help    Показать это меню
+
+Примеры:
+  $0 -f targets.txt              — сканировать все up-хосты без TCP-фильтра
+  $0 -f targets.txt -z           — только хосты с открытыми топовыми портами
+  $0 192.168.1.24                — одиночный IP
+  $0 192.168.1.0/24 -z           — подсеть с зомби-фильтром
+  $0 example.com                 — домен
+  $0 192.168.1.1 example.com -z  — несколько целей с зомби-фильтром
+
+EOF
+    exit 0
+}
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -f)
+            target_file="$2"
+            shift 2
+            ;;
+        -z)
+            ZOMBIE_FILTER=1
+            shift
+            ;;
+        -h|--help)
+            usage
+            ;;
+        *)
+            custom_targets+=("$1")
+            shift
+            ;;
+    esac
+done
+
+if [[ ${#custom_targets[@]} -gt 0 ]]; then
+    target_file=$(mktemp)
+    printf "%s\n" "${custom_targets[@]}" > "$target_file"
+fi
+
+if [[ -z "$target_file" ]] || [[ ! -f "$target_file" ]]; then
+    echo "❌ Файл целей '$target_file' не существует или не указан"
+    usage
+fi
+
 # ==================== УСТАНОВКА ЗАВИСИМОСТЕЙ ====================
 install_dependencies() {
     echo -e "\n[+] Установка необходимых зависимостей..."
@@ -256,6 +315,7 @@ done
 echo -e "\n"
 echo -e "\n💀 Все системы онлайн. Если что — это не мы."
 echo -e "🧠 Добро пожаловать в матрицу, \e[1;32m$nickname\e[0m... У нас тут sudo и печеньки 🍪."
+
 tput cnorm  # вернуть курсор
 echo -e "\n"
 
@@ -417,7 +477,6 @@ check_tools() {
     local missing=0
     declare -A install_commands=(
             ["wpscan"]="gem install wpscan"
-        [""]="apt install -y "
         ["httpx"]="go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest"
         ["whatweb"]="apt install -y whatweb"
         ["testssl"]="if ! install_testssl; then echo '❌ Ошибка установки testssl'; exit 1; fi"
@@ -474,7 +533,7 @@ check_tools() {
     fi
 
     # Проверка Grafana окружения
-    if [ ! -d "/root/-did-what" ]; then
+    if [ ! -d "/root/nmap-did-what" ]; then
         log "⚠ Директория -did-what не найдена, Grafana не будет работать"
         ((missing++))
     fi
@@ -596,29 +655,95 @@ if [[ "$WEBHOOK_URL" == *"default-token"* ]]; then
     log "⚠ Внимание: используется дефолтный webhook URL, результаты могут быть неполными"
 fi
 
-# Обработка аргументов с проверкой
-target_file=""
-while getopts "f:" opt; do
-    case $opt in
-        f) target_file="$OPTARG" ;;
-        *) echo "Использование: $0 -f <файл_с_целями>"; exit 1 ;;
-    esac
-done
-
-if [ -z "$target_file" ] || [ ! -f "$target_file" ]; then
-    log "❌ Файл целей '$target_file' не существует или не указан"
-    exit 1
-fi
-
 # Создаем необходимые директории
 mkdir -p "$LOG_DIR"/{bitrix_targets,bitrix_scan_results,whatweb_result,ssl_audit,wayback,wordpress_scan,cloud,jaeles_results,leaks,_redirects,subdomains}
 
 # 1. Пинг-сканирование с проверкой
-log "▶ Пинг-сканирование ()..."
- -sn -iL "$target_file" -oG "$LOG_DIR/ping_result.txt" || {
-    log "❌ Ошибка  ping scan"
+log "▶ Пинг-сканирование (ICMP nmap)..."
+nmap -sn -iL "$target_file" -oG "$LOG_DIR/ping_result.txt"
+awk '/Up$/{print $2}' "$LOG_DIR/ping_result.txt" > "$LOG_DIR/target_raw.txt"
+
+if [ ! -s "$LOG_DIR/target_raw.txt" ]; then
+    log "❗ ICMP не дал живых — пробую -Pn (игнорируем ICMP, ищем через ARP/TCP)"
+    nmap -Pn -sn -iL "$target_file" -oG "$LOG_DIR/ping_result.txt"
+    awk '/Host:/{print $2}' "$LOG_DIR/ping_result.txt" > "$LOG_DIR/target_raw.txt"
+fi
+
+# Резолвим домены в IP (если надо)
+tmp_ip_list=$(mktemp)
+while read host; do
+    if [[ "$host" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        echo "$host" >> "$tmp_ip_list"
+    else
+        ip=$(dig +short "$host" | grep -E '^[0-9.]+' | head -n 1)
+        [ -n "$ip" ] && echo "$ip" >> "$tmp_ip_list"
+    fi
+done < "$LOG_DIR/target_raw.txt"
+mv "$tmp_ip_list" "$LOG_DIR/target_raw.txt"
+
+if [ ! -s "$LOG_DIR/target_raw.txt" ]; then
+    log "❌ Нет доступных IP-целей после резолва"
     exit 1
-}
+fi
+
+
+AD_PORTS="53 88 135 137 138 139 389 445 464 636 3268 3269 5985 5986 9389 80 443 21 22 23 25 110 143 8080"
+
+if [ "$ZOMBIE_FILTER" = "1" ]; then
+    log "▶ TCP-зомби фильтр активен (AD + топовые порты: $AD_PORTS)"
+    > "$LOG_DIR/ping_alive.txt"
+    while read ip; do
+        for port in $AD_PORTS; do
+            timeout 1 bash -c "echo > /dev/tcp/$ip/$port" 2>/dev/null
+            if [ $? -eq 0 ]; then
+                echo "$ip" >> "$LOG_DIR/ping_alive.txt"
+                break
+            fi
+        done
+    done < "$LOG_DIR/target_raw.txt"
+    mv "$LOG_DIR/ping_alive.txt" "$LOG_DIR/target_raw.txt"
+else
+    log "▶ Зомби-фильтр отключён — все up-хосты идут дальше"
+fi
+
+if [ ! -s "$LOG_DIR/targets_clean.txt" ]; then
+    log "❌ Нет целей после фильтрации"
+    exit 1
+fi
+log "▶ Пинг-сканирование (ICMP nmap)..."
+nmap -sn -iL "$target_file" -oG "$LOG_DIR/ping_result.txt"
+awk '/Up$/{print $2}' "$LOG_DIR/ping_result.txt" > "$LOG_DIR/target_raw.txt"
+
+if [ ! -s "$LOG_DIR/target_raw.txt" ]; then
+    log "❗ ICMP не дал живых — пробую -Pn (игнорируем ICMP, ищем через ARP/TCP)"
+    nmap -Pn -sn -iL "$target_file" -oG "$LOG_DIR/ping_result.txt"
+    awk '/Host:/{print $2}' "$LOG_DIR/ping_result.txt" > "$LOG_DIR/target_raw.txt"
+fi
+
+# Резолвим домены в IP (если надо)
+tmp_ip_list=$(mktemp)
+while read host; do
+    if [[ "$host" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        echo "$host" >> "$tmp_ip_list"
+    else
+        ip=$(dig +short "$host" | grep -E '^[0-9.]+' | head -n 1)
+        [ -n "$ip" ] && echo "$ip" >> "$tmp_ip_list"
+    fi
+done < "$LOG_DIR/target_raw.txt"
+mv "$tmp_ip_list" "$LOG_DIR/target_raw.txt"
+
+if [ ! -s "$LOG_DIR/target_raw.txt" ]; then
+    log "❌ Нет доступных IP-целей после резолва"
+    exit 1
+fi
+
+log "▶ Сохраняем все цели (включая внутренние IP)..."
+cp "$LOG_DIR/target_raw.txt" "$LOG_DIR/targets_clean.txt"
+
+if [ ! -s "$LOG_DIR/targets_clean.txt" ]; then
+    log "❌ Нет целей после фильтрации"
+    exit 1
+fi
 
 grep "Up" "$LOG_DIR/ping_result.txt" | awk '{print $2}' > "$LOG_DIR/target_raw.txt" || {
     log "❌ Не удалось обработать результаты ping"
@@ -648,7 +773,7 @@ fi
 
 # 4. Детальное сканирование 
 log "▶ Глубокое сканирование портов..."
- -p- -sV -Pn --script=http-title,ssl-cert \
+ nmap -p- -sV -Pn --script=http-title,ssl-cert \
      --min-rate 500 --max-rate 1000 \
      --open -oA "$LOG_DIR/nmap_result" \
      $(cat "$LOG_DIR/targets_clean.txt") || {
