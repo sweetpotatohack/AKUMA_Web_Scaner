@@ -417,7 +417,7 @@ check_tools() {
     local missing=0
     declare -A install_commands=(
             ["wpscan"]="gem install wpscan"
-        ["nmap"]="apt install -y nmap"
+        [""]="apt install -y "
         ["httpx"]="go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest"
         ["whatweb"]="apt install -y whatweb"
         ["testssl"]="if ! install_testssl; then echo '❌ Ошибка установки testssl'; exit 1; fi"
@@ -474,8 +474,8 @@ check_tools() {
     fi
 
     # Проверка Grafana окружения
-    if [ ! -d "/root/nmap-did-what" ]; then
-        log "⚠ Директория nmap-did-what не найдена, Grafana не будет работать"
+    if [ ! -d "/root/-did-what" ]; then
+        log "⚠ Директория -did-what не найдена, Grafana не будет работать"
         ((missing++))
     fi
 
@@ -611,12 +611,12 @@ if [ -z "$target_file" ] || [ ! -f "$target_file" ]; then
 fi
 
 # Создаем необходимые директории
-mkdir -p "$LOG_DIR"/{bitrix_targets,bitrix_scan_results,whatweb_result,ssl_audit,wayback,wordpress_scan,cloud,jaeles_results,leaks,nmap_redirects,subdomains}
+mkdir -p "$LOG_DIR"/{bitrix_targets,bitrix_scan_results,whatweb_result,ssl_audit,wayback,wordpress_scan,cloud,jaeles_results,leaks,_redirects,subdomains}
 
 # 1. Пинг-сканирование с проверкой
-log "▶ Пинг-сканирование (nmap)..."
-nmap -sn -iL "$target_file" -oG "$LOG_DIR/ping_result.txt" || {
-    log "❌ Ошибка nmap ping scan"
+log "▶ Пинг-сканирование ()..."
+ -sn -iL "$target_file" -oG "$LOG_DIR/ping_result.txt" || {
+    log "❌ Ошибка  ping scan"
     exit 1
 }
 
@@ -646,13 +646,11 @@ if [ -f "$LOG_DIR/subdomains/all_subdomains.txt" ]; then
     log "Найдено поддоменов: $(wc -l < "$LOG_DIR/subdomains/all_subdomains.txt") (не добавляются в scope сканирования)"
 fi
 
-# 4. Детальное сканирование nmap
+# 4. Детальное сканирование 
 log "▶ Глубокое сканирование портов..."
-nmap -p- -sV -Pn --script=http-title,ssl-cert \
+ -p- -sV -Pn --script=http-title,ssl-cert \
      --min-rate 500 --max-rate 1000 \
-     --min-parallelism 10 --max-parallelism 50 \
-     --max-rtt-timeout 300ms --min-rtt-timeout 100ms \
-     --max-retries 2 --open -oA "$LOG_DIR/nmap_result" \
+     --open -oA "$LOG_DIR/nmap_result" \
      $(cat "$LOG_DIR/targets_clean.txt") || {
     log "⚠ Nmap завершился с ошибками, но продолжаем"
 }
