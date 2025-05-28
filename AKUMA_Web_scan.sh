@@ -39,7 +39,7 @@ for i in {1..30}; do
     sleep 0.05
 done
 
-sleep 0.3#!/bin/bash
+sleep 0.3
 target_file=""
 ZOMBIE_FILTER=0
 custom_targets=()
