@@ -1,3 +1,5 @@
+#!/bin/bash
+# Глючная загрузка - киберпанк хак-экран
 clear
 tput civis  # скрыть курсор
 
@@ -40,6 +42,16 @@ for i in {1..30}; do
 done
 
 sleep 0.3
+
+nickname="AKUMA"
+for ((i=0; i<${#nickname}; i++)); do
+    echo -ne "\e[1;31m${nickname:$i:1}\e[0m"
+    sleep 0.15
+done
+echo ""
+tput cnorm  # вернуть курсор
+
+echo -e "\n"
 target_file=""
 ZOMBIE_FILTER=0
 custom_targets=()
