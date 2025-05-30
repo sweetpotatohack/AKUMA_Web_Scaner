@@ -128,15 +128,12 @@ install_dependencies() {
     echo -e "\n[+] Установка базовых пакетов..."
     apt install -y --no-install-recommends \
         git curl wget nmap python3 python3-pip python3-venv golang ruby \
-        jq docker.io docker-compose snapd libssl-dev wkhtmltopdf xvfb \
+        jq docker.io docker-compose snapd libssl-dev xvfb \
         fonts-liberation fonts-noto-cjk fonts-noto-color-emoji ruby-dev \
         build-essential libcurl4-openssl-dev libxml2 libxml2-dev libxslt1-dev \
-        libffi-dev zlib1g-dev python3-dev python3-distutils || { 
+        libffi-dev zlib1g-dev python3-dev || { 
         echo "⚠ Ошибка установки некоторых пакетов, но продолжаем..."
     }
-    
-    # Установка шрифтов для корректного отображения в PDF
-    apt install -y fonts-dejavu fonts-freefont-ttf
 
     # Установка и настройка pipx
     echo -e "\n[+] Установка pipx..."
@@ -203,6 +200,11 @@ install_dependencies() {
     # Установка BBOT через pipx
     echo -e "\n[+] Установка BBOT..."
     if ! command -v bbot &>/dev/null; then
+        # Удаляем старую версию bs4, если есть
+        pip3 uninstall -y beautifulsoup4 bs4 || true
+        # Устанавливаем совместимую версию bs4
+        pip3 install beautifulsoup4==4.12.0
+        
         if pipx install bbot; then
             bbot_path=$(pipx list --short | grep bbot | awk '{print $3}')
             if [ -n "$bbot_path" ]; then
@@ -479,7 +481,6 @@ check_tools() {
         ["httpx"]="go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest"
         ["whatweb"]="apt install -y whatweb"
         ["testssl"]="if ! install_testssl; then echo '❌ Ошибка установки testssl'; exit 1; fi"
-        ["wkhtmltopdf"]="apt install -y wkhtmltopdf"
         ["nuclei"]="go install -v github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest"
         ["jaeles"]="GO111MODULE=on go install github.com/jaeles-project/jaeles@latest"
         ["waybackurls"]="go install github.com/tomnomnom/waybackurls@latest"
@@ -1375,23 +1376,6 @@ cat <<EOF > "$LOG_DIR/report.html"
 </html>
 EOF
 
-# Конвертируем HTML в PDF с исправленными шрифтами
-log "▶ Конвертация отчета в PDF..."
-xvfb-run --server-args="-screen 0, 1024x768x24" wkhtmltopdf \
-    --encoding 'UTF-8' \
-    --no-outline \
-    --margin-top 10mm \
-    --margin-right 10mm \
-    --margin-bottom 10mm \
-    --margin-left 10mm \
-    --page-size A4 \
-    --quiet \
-    "$LOG_DIR/report.html" "$LOG_DIR/final_report.pdf" || {
-    log "⚠ Не удалось создать PDF отчет, создаем текстовый"
-    cp "$LOG_DIR/report.html" "$LOG_DIR/final_report.txt"
-}
-log "✅ Отчет сохранен: $LOG_DIR/final_report.pdf"
-
 # Финал
 log "=== Сканирование завершено ==="
 
@@ -1416,7 +1400,6 @@ echo -e "• Высоких уязвимостей: \e[31m$nuclei_high\e[0m"
 echo -e "• Средних уязвимостей: \e[31m$nuclei_med\e[0m"
 echo -e "• Уязвимостей Jaeles: \e[31m$jaeles_vulns\e[0m"
 echo -e "• Webhook URL: \e[36m$WEBHOOK_URL\e[0m"
-echo -e "• PDF-отчет: \e[36m$LOG_DIR/final_report.pdf\e[0m\n"
 
 # Дополнительная информация о найденных редиректах
 if [ -s "$LOG_DIR/nmap_redirects/redirects.txt" ]; then
