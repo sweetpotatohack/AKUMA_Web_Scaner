@@ -137,27 +137,22 @@ install_dependencies() {
 
     echo -e "\n[+] Установка pipx..."
 if ! command -v pipx &>/dev/null; then
-    # Сначала через pip
-    python3 -m pip install --user pipx
+    python3 -m pip install --user pipx --break-system-packages 2>/dev/null
     if ! command -v pipx &>/dev/null; then
         echo "⚠ pipx через pip не установился, пробую через apt..."
         apt update && apt install -y pipx
     fi
-    # Финальная проверка
     if ! command -v pipx &>/dev/null; then
         echo "❌ pipx не удалось установить ни через pip, ни через apt"
         return 1
     fi
-    # ensurepath (ставит в PATH, если надо)
     python3 -m pipx ensurepath || {
         echo "⚠ Не удалось настроить PATH для pipx"
         return 1
     }
-    # Подгружаем путь, если надо
     source ~/.bashrc 2>/dev/null || true
 fi
 
-    
     # Установка и настройка Ruby и WPScan
     echo -e "\n[+] Настройка Ruby и WPScan..."
     if ! command -v gem &>/dev/null; then
