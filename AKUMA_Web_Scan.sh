@@ -657,106 +657,64 @@ fi
 # Создаем необходимые директории
 mkdir -p "$LOG_DIR"/{bitrix_targets,bitrix_scan_results,whatweb_result,ssl_audit,wayback,wordpress_scan,cloud,jaeles_results,leaks,_redirects,subdomains}
 
-# 1. Пинг-сканирование с проверкой
+# 1. ПИНГ-СКАН + ОДНОВРЕМЕННО СОХРАНЯЕМ ВСЁ!
 log "▶ Пинг-сканирование (ICMP nmap)..."
+
+awk '{print $1}' "$target_file" | sed '/^$/d;/^#/d' | sort -u > "$LOG_DIR/initial_scope.txt"
+
+# Пинг ICMP только IP и домены, которые резолвятся
 nmap -sn -iL "$target_file" -oG "$LOG_DIR/ping_result.txt"
-awk '/Up$/{print $2}' "$LOG_DIR/ping_result.txt" > "$LOG_DIR/target_raw.txt"
+awk '/Up$/{print $2}' "$LOG_DIR/ping_result.txt" > "$LOG_DIR/up_hosts.txt"
 
-if [ ! -s "$LOG_DIR/target_raw.txt" ]; then
-    log "❗ ICMP не дал живых — пробую -Pn (игнорируем ICMP, ищем через ARP/TCP)"
-    nmap -Pn -sn -iL "$target_file" -oG "$LOG_DIR/ping_result.txt"
-    awk '/Host:/{print $2}' "$LOG_DIR/ping_result.txt" > "$LOG_DIR/target_raw.txt"
-fi
-
-# Резолвим домены в IP (если надо)
-tmp_ip_list=$(mktemp)
+# Резолвим домены в IP (домены сами не выбрасываем!)
+> "$LOG_DIR/resolved_ips.txt"
 while read host; do
+    [[ -z "$host" || "$host" =~ ^# ]] && continue
     if [[ "$host" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        echo "$host" >> "$tmp_ip_list"
+        echo "$host" >> "$LOG_DIR/resolved_ips.txt"
     else
-        ip=$(dig +short "$host" | grep -E '^[0-9.]+' | head -n 1)
-        [ -n "$ip" ] && echo "$ip" >> "$tmp_ip_list"
+        dig +short "$host" | grep -E '^[0-9.]+' >> "$LOG_DIR/resolved_ips.txt"
     fi
-done < "$LOG_DIR/target_raw.txt"
-mv "$tmp_ip_list" "$LOG_DIR/target_raw.txt"
+done < "$LOG_DIR/initial_scope.txt"
+sort -u "$LOG_DIR/resolved_ips.txt" -o "$LOG_DIR/resolved_ips.txt"
 
-if [ ! -s "$LOG_DIR/target_raw.txt" ]; then
-    log "❌ Нет доступных IP-целей после резолва"
-    exit 1
-fi
+# IP, которые реально up
+comm -12 <(sort "$LOG_DIR/up_hosts.txt") <(sort "$LOG_DIR/resolved_ips.txt") > "$LOG_DIR/up_and_resolved_ips.txt"
 
-
-AD_PORTS="53 88 135 137 138 139 389 445 464 636 3268 3269 5985 5986 9389 80 443 21 22 23 25 110 143 8080"
-
+# TCP-зомби фильтр
 if [ "$ZOMBIE_FILTER" = "1" ]; then
-    log "▶ TCP-зомби фильтр активен (AD + топовые порты: $AD_PORTS)"
-    > "$LOG_DIR/ping_alive.txt"
+    log "▶ TCP-зомби фильтр активен (AD + топовые порты)"
+    AD_PORTS="53 88 135 137 138 139 389 445 464 636 3268 3269 5985 5986 9389 80 443 21 22 23 25 110 143 8080"
+    > "$LOG_DIR/zombie_alive.txt"
     while read ip; do
         for port in $AD_PORTS; do
             timeout 1 bash -c "echo > /dev/tcp/$ip/$port" 2>/dev/null
             if [ $? -eq 0 ]; then
-                echo "$ip" >> "$LOG_DIR/ping_alive.txt"
+                echo "$ip" >> "$LOG_DIR/zombie_alive.txt"
                 break
             fi
         done
-    done < "$LOG_DIR/target_raw.txt"
-    mv "$LOG_DIR/ping_alive.txt" "$LOG_DIR/target_raw.txt"
+    done < "$LOG_DIR/up_and_resolved_ips.txt"
+    sort -u "$LOG_DIR/zombie_alive.txt" -o "$LOG_DIR/up_and_resolved_ips.txt"
 else
     log "▶ Зомби-фильтр отключён — все up-хосты идут дальше"
 fi
 
-if [ ! -s "$LOG_DIR/targets_clean.txt" ]; then
-    log "❌ Нет целей после фильтрации"
-    exit 1
-fi
-log "▶ Пинг-сканирование (ICMP nmap)..."
-nmap -sn -iL "$target_file" -oG "$LOG_DIR/ping_result.txt"
-awk '/Up$/{print $2}' "$LOG_DIR/ping_result.txt" > "$LOG_DIR/target_raw.txt"
-
-if [ ! -s "$LOG_DIR/target_raw.txt" ]; then
-    log "❗ ICMP не дал живых — пробую -Pn (игнорируем ICMP, ищем через ARP/TCP)"
-    nmap -Pn -sn -iL "$target_file" -oG "$LOG_DIR/ping_result.txt"
-    awk '/Host:/{print $2}' "$LOG_DIR/ping_result.txt" > "$LOG_DIR/target_raw.txt"
-fi
-
-# Резолвим домены в IP (если надо)
-tmp_ip_list=$(mktemp)
-while read host; do
-    if [[ "$host" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        echo "$host" >> "$tmp_ip_list"
-    else
-        ip=$(dig +short "$host" | grep -E '^[0-9.]+' | head -n 1)
-        [ -n "$ip" ] && echo "$ip" >> "$tmp_ip_list"
-    fi
-done < "$LOG_DIR/target_raw.txt"
-mv "$tmp_ip_list" "$LOG_DIR/target_raw.txt"
-
-if [ ! -s "$LOG_DIR/target_raw.txt" ]; then
-    log "❌ Нет доступных IP-целей после резолва"
-    exit 1
-fi
-
-log "▶ Сохраняем все цели (включая внутренние IP)..."
-cp "$LOG_DIR/target_raw.txt" "$LOG_DIR/targets_clean.txt"
+# Собираем финальный scope:
+#  - домены из исходника (никогда не теряем!)
+#  - IP, которые прошли резолв+пинг (+ зомби фильтр, если был)
+#  - убираем дубли
+grep -vE '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' "$LOG_DIR/initial_scope.txt" > "$LOG_DIR/dns_only.txt"
+cat "$LOG_DIR/dns_only.txt" "$LOG_DIR/up_and_resolved_ips.txt" | sort -u > "$LOG_DIR/targets_clean.txt"
 
 if [ ! -s "$LOG_DIR/targets_clean.txt" ]; then
-    log "❌ Нет целей после фильтрации"
+    log "❌ Нет целей после фильтрации (ICMP, резолв, зомби)"
     exit 1
 fi
 
-grep "Up" "$LOG_DIR/ping_result.txt" | awk '{print $2}' > "$LOG_DIR/target_raw.txt" || {
-    log "❌ Не удалось обработать результаты ping"
-    exit 1
-}
+log "▶ Итоговый scope для дальнейшего сканирования:"
+cat "$LOG_DIR/targets_clean.txt" | tee -a "$LOG_DIR/scan.log"
 
-log "▶ Сохраняем все цели (включая внутренние IP)..."
-cp "$LOG_DIR/target_raw.txt" "$LOG_DIR/targets_clean.txt"
-
-
-if [ ! -s "$LOG_DIR/targets_clean.txt" ]; then
-    log "❌ Нет целей после фильтрации"
-    exit 1
-fi
 
 # 3. Поиск поддоменов для доменов из target_file
 log "▶ Поиск поддоменов..."
