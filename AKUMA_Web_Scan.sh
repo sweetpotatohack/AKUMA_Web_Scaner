@@ -564,11 +564,20 @@ check_tools() {
         }
     fi
 
-    # Проверка Grafana окружения
-    if [ ! -d "/root/nmap-did-what" ]; then
-        log "⚠ Директория nmap-did-what не найдена, Grafana не будет работать"
+    # Проверка и установка nmap-did-what
+if [ ! -d "/root/nmap-did-what" ]; then
+    log "⚠ Директория nmap-did-what не найдена, пытаюсь установить..."
+    if ! command -v git &>/dev/null; then
+        log "❌ Не установлен git — apt install -y git"
+        ((missing++))
+    elif git clone https://github.com/hackertarget/nmap-did-what.git /root/nmap-did-what; then
+        log "✅ nmap-did-what успешно установлен"
+    else
+        log "❌ Не удалось клонировать nmap-did-what"
         ((missing++))
     fi
+fi
+
 
     return $missing
 }
