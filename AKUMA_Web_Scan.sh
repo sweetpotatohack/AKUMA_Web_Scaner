@@ -124,16 +124,44 @@ install_dependencies() {
     # Обновление пакетов
     apt update -y || { echo "❌ Ошибка при обновлении пакетов"; return 1; }
     
-    # Установка основных утилит
+echo -e "\n[+] Установка Go (golang) >=1.23..."
+
+# Проверим установлен ли go и его версию
+if command -v go &>/dev/null && go version | grep -qE 'go1\.2[3-9]|go1\.[3-9][0-9]'; then
+    echo "[i] Go уже установлен: $(go version)"
+else
+    # Сначала удалим старый golang, если есть
+    apt remove -y golang-go golang || true
+
+    # Выбираем последнюю стабильную (1.23.4) — можно менять под себя!
+    GO_VERSION="1.23.4"
+    ARCH=$(dpkg --print-architecture)
+    case "$ARCH" in
+      amd64) ARCH_DL="amd64";;
+      arm64) ARCH_DL="arm64";;
+      *) echo "Неизвестная архитектура: $ARCH"; exit 1;;
+    esac
+
+    wget -q https://go.dev/dl/go${GO_VERSION}.linux-${ARCH_DL}.tar.gz -O /tmp/go${GO_VERSION}.tar.gz
+    rm -rf /usr/local/go && tar -C /usr/local -xzf /tmp/go${GO_VERSION}.tar.gz
+
+    # Добавим go в PATH (один раз для этой сессии)
+    export PATH=$PATH:/usr/local/go/bin
+    if ! grep -q '/usr/local/go/bin' ~/.bashrc; then
+        echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc
+    fi
+    echo "[+] Установлен Go $(go version)"
+fi
+
     echo -e "\n[+] Установка базовых пакетов..."
-    apt install -y --no-install-recommends \
-        git curl wget nmap python3 python3-pip python3-venv golang ruby \
-        jq docker.io docker-compose snapd libssl-dev xvfb \
-        fonts-liberation fonts-noto-cjk fonts-noto-color-emoji ruby-dev \
-        build-essential libcurl4-openssl-dev libxml2 libxml2-dev libxslt1-dev \
-        libffi-dev zlib1g-dev python3-dev || { 
-        echo "⚠ Ошибка установки некоторых пакетов, но продолжаем..."
-    }
+apt install -y --no-install-recommends \
+    git curl wget nmap python3 python3-pip python3-venv ruby \
+    jq docker.io docker-compose snapd libssl-dev xvfb \
+    fonts-liberation fonts-noto-cjk fonts-noto-color-emoji ruby-dev \
+    build-essential libcurl4-openssl-dev libxml2 libxml2-dev libxslt1-dev \
+    libffi-dev zlib1g-dev python3-dev || { 
+    echo "⚠ Ошибка установки некоторых пакетов, но продолжаем..."
+}
 
     echo -e "\n[+] Установка pipx..."
 if ! command -v pipx &>/dev/null; then
@@ -201,28 +229,28 @@ fi
         echo "❌ WPScan не установлен, сканирование WordPress будет пропущено"
     fi
     
-    # Установка BBOT через pipx
     echo -e "\n[+] Установка BBOT..."
-    if ! command -v bbot &>/dev/null; then
-        # Удаляем старую версию bs4, если есть
-        pip3 uninstall -y beautifulsoup4 bs4 || true
-        # Устанавливаем совместимую версию bs4
-        pip3 install beautifulsoup4==4.12.0
-        
-        if pipx install bbot; then
-            bbot_path=$(pipx list --short | grep bbot | awk '{print $3}')
-            if [ -n "$bbot_path" ]; then
-                cp "$bbot_path/bin/bbot" /usr/local/bin/ || echo "⚠ Не удалось скопировать BBOT в /usr/local/bin"
-            fi
-            echo "✅ BBOT успешно установлен"
-        else
-            echo "❌ Не удалось установить BBOT"
-            return 1
-        fi
-    else
-        echo "ℹ BBOT уже установлен, пропускаем установку"
-    fi
+if ! command -v bbot &>/dev/null; then
+    # Удаляем старую версию bs4, если есть
+    pip3 uninstall -y beautifulsoup4 bs4 || true
+    # Устанавливаем совместимую версию bs4
+    pip3 install --break-system-packages beautifulsoup4==4.12.0
     
+    # pipx install с нужным флагом
+    if pipx install bbot --break-system-packages; then
+        bbot_path=$(pipx list --short | grep bbot | awk '{print $3}')
+        if [ -n "$bbot_path" ]; then
+            cp "$bbot_path/bin/bbot" /usr/local/bin/ || echo "⚠ Не удалось скопировать BBOT в /usr/local/bin"
+        fi
+        echo "✅ BBOT успешно установлен"
+    else
+        echo "❌ Не удалось установить BBOT"
+        return 1
+    fi
+else
+    echo "ℹ BBOT уже установлен, пропускаем установку"
+fi
+
     # Остальные зависимости...
     # Установка lolcat (для цветного вывода)
     if ! command -v lolcat &>/dev/null; then
