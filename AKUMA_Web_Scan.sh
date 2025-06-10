@@ -697,7 +697,7 @@ if [[ "$WEBHOOK_URL" == *"default-token"* ]]; then
 fi
 
 # Создаем необходимые директории
-mkdir -p "$LOG_DIR"/{bitrix_targets,bitrix_scan_results,whatweb_result,ssl_audit,wayback,wordpress_scan,cloud,jaeles_results,leaks,_redirects,subdomains}
+mkdir -p "$LOG_DIR"/{bitrix_targets,bitrix_scan_results,whatweb_result,ssl_audit,wayback,wordpress_scan,cloud,jaeles_results,leaks,nmap_redirects,subdomains}
 
 # 1. ПИНГ-СКАН + ОДНОВРЕМЕННО СОХРАНЯЕМ ВСЁ!
 log "▶ Пинг-сканирование (ICMP nmap)..."
