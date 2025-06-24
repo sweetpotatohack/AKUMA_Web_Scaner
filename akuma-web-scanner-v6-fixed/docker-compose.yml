@@ -1,0 +1,196 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: akuma-postgres-v6
+    environment:
+      POSTGRES_DB: akuma_scanner
+      POSTGRES_USER: akuma
+      POSTGRES_PASSWORD: cyberpunk2077
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U akuma -d akuma_scanner"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - akuma-network
+    restart: unless-stopped
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: akuma-redis-v6
+    command: redis-server --appendonly yes --requirepass cyberpunk2077
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "cyberpunk2077", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - akuma-network
+    restart: unless-stopped
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: akuma-backend-v6
+    environment:
+      DATABASE_URL: postgresql://akuma:cyberpunk2077@postgres:5432/akuma_scanner
+      REDIS_URL: redis://:cyberpunk2077@redis:6379/0
+      SECRET_KEY: akuma-cyberpunk-ultimate-scanner-v6-secret-key
+    volumes:
+      - ./backend:/app
+      - scan_results:/app/scan_results
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 60s
+      timeout: 30s
+      retries: 3
+      start_period: 30s
+    networks:
+      - akuma-network
+    restart: unless-stopped
+
+  # Scanner Engine
+  scanner:
+    build:
+      context: ./scanner
+      dockerfile: Dockerfile
+    container_name: akuma-scanner-v6
+    environment:
+      REDIS_HOST: redis
+      BACKEND_URL: http://backend:8000
+    volumes:
+      - scan_results:/app/scan_results
+      - nmap_data:/root/nmap-did-what/data
+    ports:
+      - "5000:5000"
+    depends_on:
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    networks:
+      - akuma-network
+    restart: unless-stopped
+    privileged: true  # Required for some scanning tools
+
+  # Frontend Web UI
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: akuma-frontend-v6
+    environment:
+      REACT_APP_API_URL: http://localhost:8000
+    ports:
+      - "3001:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 60s
+      timeout: 30s
+      retries: 3
+      start_period: 60s
+    networks:
+      - akuma-network
+    restart: unless-stopped
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: akuma-nginx-v6
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/ssl/private
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+      - frontend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - akuma-network
+    restart: unless-stopped
+
+  # Grafana for Nmap Visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: akuma-grafana-v6
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: cyberpunk2077
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_SECURITY_DISABLE_GRAVATAR: "true"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - nmap_data:/data:ro
+    ports:
+      - "3000:3000"
+    networks:
+      - akuma-network
+    restart: unless-stopped
+
+  # Prometheus (for metrics)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: akuma-prometheus-v6
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - akuma-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    name: akuma_postgres_data_v6
+  redis_data:
+    name: akuma_redis_data_v6
+  grafana_data:
+    name: akuma_grafana_data_v6
+  prometheus_data:
+    name: akuma_prometheus_data_v6
+  scan_results:
+    name: akuma_scan_results_v6
+  nmap_data:
+    name: akuma_nmap_data_v6
+
+networks:
+  akuma-network:
+    name: akuma-network-v6
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
